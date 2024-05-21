@@ -1,30 +1,80 @@
-const playerCanvas = document.getElementById('player-canvas');
-const ctxPlayer = playerCanvas.getContext('2d');
-const targetCanvas = document.getElementById('player-canvas');
-const ctxTarget = targetCanvas.getContext('2d');
-
 function Ship(name, letter, length){
     this.name = name;
     this.letter = letter;
     this.length = length;
 }
-
 const Battleship = new Ship('Battleship', 'B', 4);
 const AircraftCarrier = new Ship('Aircraft Carrier', 'A', 5);
 const Cruiser = new Ship('Cruiser', 'C', 3);
 const Submarine = new Ship('Submarine', 'S', 3);
 const Destoryer = new Ship('Destroyer', 'D', 2);
-
 const Ships = [Battleship, AircraftCarrier, Cruiser, Submarine, Destoryer];
-
 let playerArray = createEmptyArray(10, 10);
 let enemyArray = createEmptyArray(10, 10);
+let hiddenArray = createEmptyArray(10,10);
+let enemyHiddenArray = createEmptyArray(10,10);
 enemyArray = randomMapOutShips(enemyArray);
+let gameActive = false;
+
+console.log("Ready to play? Keep clicking 'Set Board' till you like your set up and press 'Start' to begin");
+
+function beginGame(){
+    gameActive = true;
+    console.table(hiddenArray);
+    console.table(playerArray);
+    while(gameActive === true){
+        const input = window.prompt("Coordinates(ex: x,y) - ");
+        const inputY = input.charAt(0);
+        const inputX = input.charAt(2);
+        if(enemyArray[inputX][inputY]!= ' '){
+            window.alert("Hit at " + inputY + ", " + inputX);
+            hiddenArray[inputX][inputY] = 'H';
+            enemyArray[inputX][inputY] = 'R';
+        }
+        else{
+            window.alert("Miss at " + inputY + ", " + inputX);
+            hiddenArray[inputX][inputY] = 'M';
+        }
+        console.table(hiddenArray);
+        console.table(playerArray);
+        window.alert("ENEMY TURN... Ready?");
+        let enemyX = 0;
+        let enemyY = 0;
+        let isValid = false;
+        while(isValid === false){
+            enemyX = getRandomInt();
+            enemyY = getRandomInt();
+
+            if(enemyHiddenArray[enemyX][enemyY] === ' '){
+                isValid = true;
+            }
+        }
+        if(playerArray[enemyX][enemyY]!= ' '){
+            window.alert("Hit at " + enemyX + ", " + enemyY);
+            enemyHiddenArray[enemyX][enemyY] = 'H';
+            playerArray[enemyX][enemyY] = 'R';
+        }
+        else{
+            window.alert("Miss at " + enemyX + ", " + enemyY);
+            enemyHiddenArray[enemyX][enemyY] = 'M';
+        }
 
 
+    }
+}
 
-
-
+function checkForWin(player){
+    player.forEach(array =>{
+        array.forEach(item =>{
+            
+        })
+    })
+}
+function playerSetBoard(){
+    playerArray = createEmptyArray(10, 10);
+    playerArray = randomMapOutShips(playerArray);
+    console.table(playerArray);
+}
 function randomMapOutShips(array){
     Ships.forEach(ship =>{
         complete = false;
