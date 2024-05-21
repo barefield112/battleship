@@ -13,14 +13,14 @@ const Battleship = new Ship('Battleship', 'B', 4);
 const AircraftCarrier = new Ship('Aircraft Carrier', 'A', 5);
 const Cruiser = new Ship('Cruiser', 'C', 3);
 const Submarine = new Ship('Submarine', 'S', 3);
-const Destoryer = new Ship('Destroyer', 'D', 4);
+const Destoryer = new Ship('Destroyer', 'D', 2);
 
 const Ships = [Battleship, AircraftCarrier, Cruiser, Submarine, Destoryer];
 
 let playerArray = createEmptyArray(10, 10);
 let enemyArray = createEmptyArray(10, 10);
 enemyArray = randomMapOutShips(enemyArray);
-console.table(enemyArray);
+
 
 
 
@@ -32,14 +32,45 @@ function randomMapOutShips(array){
             const x = getRandomInt();
             const y = getRandomInt();
             const length = ship.length;
-            let shipFits = false;
-            if(array[x][y] === ' '){
-                array[x][y] = ship.letter;   
-                complete = true;
+            let count = 0;
+            
+            if(getRandomBool()){
+                for (let i = 0; i < length; i++){
+                    if(x+i < 9){
+                        if(array[(x+i)][y] === ' '){
+                            count += 1; 
+                         }
+                    }
+                }
+                if(count === length){
+                    for (let i = 0; i < length; i++){
+                    array[(x+i)][y] = ship.letter;
+                    complete = true;
+                    }
+                }
+            }
+            else{
+                for (let i = 0; i < length; i++){
+                    if(x+i < 9){
+                        if(array[(x)][y+i] === ' '){
+                            count += 1; 
+                         }
+                    }
+                }
+                if(count === length){
+                    for (let i = 0; i < length; i++){
+                    array[(x)][y+i] = ship.letter;
+                    complete = true;
+                    }
+                }
             }
         }
     });
     return array;
+
+    function isVertical(){
+        return Math.random() < 0.5;
+    }
 }
 function createEmptyArray(row, col){
     let finalArray = [];
@@ -56,4 +87,7 @@ function getRandomInt(){
     min = Math.ceil(0);
     max = Math.floor(9);
     return Math.floor(Math.random() * (max-min + 1)) + min;
+}
+function getRandomBool(){
+    return Math.random() < 0.5;
 }
