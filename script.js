@@ -20,55 +20,99 @@ console.log("Ready to play? Keep clicking 'Set Board' till you like your set up 
 
 function beginGame(){
     gameActive = true;
-    console.table(hiddenArray);
     console.table(playerArray);
+    console.table(hiddenArray);
     while(gameActive === true){
         const input = window.prompt("Coordinates(ex: x,y) - ");
         const inputY = input.charAt(0);
         const inputX = input.charAt(2);
         if(enemyArray[inputX][inputY]!= ' '){
             window.alert("Hit at " + inputY + ", " + inputX);
-            hiddenArray[inputX][inputY] = 'H';
+            const hitLetter = enemyArray[inputX][inputY];
             enemyArray[inputX][inputY] = 'R';
+            hiddenArray[inputX][inputY] = 'X';
+            if(didShipSink(enemyArray, hitLetter)){
+                Ships.forEach(ship =>{
+                    if(ship.letter === hitLetter){
+                        window.alert("You Sunk Their " + ship.name);
+                    }
+                })
+                if(didPlayerWin(enemyArray)){
+                    endGame(1);
+                }
+            }
+            
         }
         else{
             window.alert("Miss at " + inputY + ", " + inputX);
-            hiddenArray[inputX][inputY] = 'M';
+            hiddenArray[inputX][inputY] = 'O';
         }
-        console.table(hiddenArray);
-        console.table(playerArray);
         window.alert("ENEMY TURN... Ready?");
         let enemyX = 0;
         let enemyY = 0;
         let isValid = false;
         while(isValid === false){
-            enemyX = getRandomInt();
-            enemyY = getRandomInt();
-
+                enemyX = getRandomInt();
+                enemyY = getRandomInt();
             if(enemyHiddenArray[enemyX][enemyY] === ' '){
                 isValid = true;
             }
         }
         if(playerArray[enemyX][enemyY]!= ' '){
-            window.alert("Hit at " + enemyX + ", " + enemyY);
-            enemyHiddenArray[enemyX][enemyY] = 'H';
+            window.alert("Hit at " + enemyY + ", " + enemyX);
+            const hitLetter = playerArray[enemyX][enemyY];
+            enemyHiddenArray[enemyX][enemyY] = 'X';
             playerArray[enemyX][enemyY] = 'R';
+            if(didShipSink(playerArray, hitLetter)){
+                Ships.forEach(ship =>{
+                    if(ship.letter === hitLetter){
+                        window.alert("They Sunk Your " + ship.name);
+                    }
+                })
+                if(didPlayerWin(playerArray)){
+                    endGame(1);
+                }
+            }
         }
         else{
             window.alert("Miss at " + enemyX + ", " + enemyY);
-            enemyHiddenArray[enemyX][enemyY] = 'M';
+            enemyHiddenArray[enemyX][enemyY] = 'O';
         }
-
-
+        console.table(playerArray);
+        console.table(hiddenArray);
     }
 }
-
-function checkForWin(player){
-    player.forEach(array =>{
-        array.forEach(item =>{
-            
-        })
-    })
+function endGame(num){
+    if(num === 1){
+        window.alert("You Win: Close Game")
+    }
+    else{
+        window.alert("You Lose: Close Game")
+    }
+    console.log("Game Over");
+    gameActive = false;
+}
+function didPlayerWin(player){
+    for (let i = 0; i < player.length; i++) {
+        for (let j = 0; j < player[i].length; j++) {
+            if (player[i][j] !== ' ' && player[i][j] !== 'R') {
+                // If an item is found that is neither ' ' nor 'R', return false
+                return false;
+            }
+        }
+    }
+    // If the loop completes without finding any non-' ' or 'R' items, return true
+    return true;
+}
+function didShipSink(player, letter) {
+    for (let i = 0; i < player.length; i++) {
+        for (let j = 0; j < player[i].length; j++) {
+            if (player[i][j] === letter) {
+                return false;
+            }
+        }
+    }
+    return true; // Only returns true if no `letter` is found in the entire grid
 }
 function playerSetBoard(){
     playerArray = createEmptyArray(10, 10);
