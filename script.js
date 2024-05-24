@@ -3,7 +3,6 @@ const hiddenCanvas = document.getElementById('hidden-screen');
 const setBoardButton = document.getElementById('setBoard');
 const startButton = document.getElementById('startGame');
 const endButton = document.getElementById('endGame');
-
 function Ship(name, letter, length){
     this.name = name;
     this.letter = letter;
@@ -22,11 +21,9 @@ let enemyHiddenArray = createEmptyArray(10,10);
 enemyArray = randomMapOutShips(enemyArray);
 let targetMode = false;
 let target = [0,0];
-let searchArea = 2;
+let searchArea = 1;
 let gameActive = false;
 let isplayerTurn = false;
-
-console.log("Ready to play? Keep clicking 'Set Board' till you like your set up and press 'Start' to begin");
 
 hiddenCanvas.addEventListener('click', function(event){
     if(gameActive === true && isplayerTurn === true){
@@ -134,7 +131,9 @@ function playerTurn(inputX, inputY){
 function enemyTurn(){
     let enemyX = 0;
     let enemyY = 0;
+    let coordsFound = false;
     const attackList = [];
+    while(!coordsFound){
         if (!targetMode) {
             for(let i = 0; i<enemyHiddenArray.length; i++){
                 for(let j = 0; j<enemyHiddenArray.length; j++){
@@ -146,17 +145,24 @@ function enemyTurn(){
             const randomTarget = attackList[getRandomInt(0, attackList.length-1)];
             enemyX = randomTarget[0];
             enemyY = randomTarget[1];
+            coordsFound = true;
         } else {  // Target mode is active
-            const attackCoords = attackTarget(target[0], target[1]);
+            const attackCoords = oppenentTargetAI(target[0], target[1]);
             if (attackCoords === null) {
                 // If no valid coordinates found, reset target mode and search area, try random attack
-                targetMode = false;
-                searchArea = 2;  // Reset search area or adjust as needed
+                coordsFound = false;
+                continue;
             }
-            enemyX = attackCoords[0];
-            enemyY = attackCoords[1];
+            else{
+                coordsFound = true;
+            }
+
+            if(coordsFound === true){
+                enemyX = attackCoords[0];
+                enemyY = attackCoords[1];
+            }
         }
-    
+    }
     processEnemyTurn(enemyX, enemyY);  // Processing the turn based on valid coordinates
 }
 function processEnemyTurn(enemyX, enemyY) {
@@ -292,6 +298,7 @@ function getRandomInt(small, large){
 function getRandomBool(){
     return Math.random() < 0.5;
 }
+/*
 function attackTarget(x, y) {
     let listOfCoords = [];
     let horizontalHits = false;
@@ -351,4 +358,113 @@ function attackTarget(x, y) {
         searchArea++; // Consider resetting searchArea when it becomes too large
         return null;
     }
+}
+*/
+
+function oppenentTargetAI(x, y){
+    let emptySpaces = [];
+    let hitSpaces = [];
+    let notLeft = 0;
+    let notRight = 9;
+    let notUp = 0;
+    let notDown = 9;
+//Look and log each item touching it, if empty spaces log each one, if R log coords.
+for(let i = 1; i<= searchArea; i++){
+    if(x - i >= 0){
+        if(enemyHiddenArray[x- i][y] === ' '){
+            emptySpaces.push([x-i,y]);
+        }
+        else if(enemyHiddenArray[x -searchArea][y] === 'X'){
+            hitSpaces.push([x-i,y]);
+        }
+        else if(enemyHiddenArray[x - 1][y] === 'O'){
+            notLeft = x;
+        }
+    }
+    if(x + i <= 9){
+        if(enemyHiddenArray[x + i][y] === ' '){
+            emptySpaces.push([x+i,y]);
+        }
+        else if(enemyHiddenArray[x +i][y] === 'X'){
+            hitSpaces.push([x+i,y]);
+        }
+        else if(enemyHiddenArray[x + 1][y] === 'O'){
+            notRight = x;
+        }
+    }
+    if(y -i >= 0){
+        if(enemyHiddenArray[x][y -i ] === ' '){
+            emptySpaces.push([x,y - i]);
+        }
+        else if(enemyHiddenArray[x][y -i] === 'X'){
+            hitSpaces.push([x,y -i]);
+        }
+        else if(enemyHiddenArray[x][y - 1] === 'O'){
+            notUp = y;
+        }
+    }
+    if(y + i <= 9){
+        if(enemyHiddenArray[x][y+i] === ' '){
+            emptySpaces.push([x,y+i]);
+        }
+        else if(enemyHiddenArray[x][y+i] === 'X'){
+            hitSpaces.push([x,y+i]);
+        }
+        else if(enemyHiddenArray[x][y + i] === 'O'){
+            notDown = y;
+        }
+    }
+}
+    console.log(`Found ${emptySpaces.length} empty and ${hitSpaces.length} hits next to ${x}, ${y}`);
+
+    if(emptySpaces.length === 0){
+        searchArea = searchArea + 1;
+        return null;
+    }
+    //if no R coors, random generate from list of spaces
+    if(hitSpaces.length === 0){
+        const randomCoords = emptySpaces[getRandomInt(0, emptySpaces.length-1)];
+        searchArea = 1;
+        return randomCoords; 
+    }
+    else{ //Use R coords to narrow search along an axis
+        //copares the x and y coord of the first hitSpaces element with the list of the empty spaces, 
+        console.log("There is another X");
+        const hitX = hitSpaces[0][0];
+        const hitY = hitSpaces[0][1];
+        let filteredSpaces = [];
+        emptySpaces.forEach(space =>{
+            if(space[0] === hitX){
+                if(notLeft <= space[0]){
+                    console.log(`Not Left adding ${space}`);
+                    filteredSpaces.push(space);
+                }
+                if(notRight >= space[0]){
+                    console.log(`Not Right adding ${space}`);
+                    filteredSpaces.push(space);
+                }
+            }
+            else if(space[1] === hitY){
+                if(notUp <= space[1]){
+                    console.log(`Not Up adding ${space}`);
+                    filteredSpaces.push(space);
+                }
+                if(notDown >= space[1]){
+                    console.log(`Not down adding ${space}`);
+                    filteredSpaces.push(space);
+                }
+            }
+        });
+        if(filteredSpaces.length === 0){
+            searchArea = searchArea + 1;
+            return null;
+        }
+        else{
+            console.log(filteredSpaces);
+            searchArea = 1;
+            return filteredSpaces[0];
+        }
+    }
+    //if element has no empty spaces on it (must be surrounded with at least 1 R and all O's) expand seach on axis
+    //return next attack coords
 }
