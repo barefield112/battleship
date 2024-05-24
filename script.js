@@ -1,3 +1,9 @@
+const playerCanvas = document.getElementById('player-screen');
+const hiddenCanvas = document.getElementById('hidden-screen');
+const setBoardButton = document.getElementById('setBoard');
+const startButton = document.getElementById('startGame');
+const endButton = document.getElementById('endGame');
+
 function Ship(name, letter, length){
     this.name = name;
     this.letter = letter;
@@ -18,29 +24,95 @@ let targetMode = false;
 let target = [0,0];
 let searchArea = 2;
 let gameActive = false;
+let isplayerTurn = false;
 
 console.log("Ready to play? Keep clicking 'Set Board' till you like your set up and press 'Start' to begin");
 
+hiddenCanvas.addEventListener('click', function(event){
+    if(gameActive === true && isplayerTurn === true){
+        const rect = hiddenCanvas.getBoundingClientRect();
+        const x = event.x - rect.left;
+        const y = event.y - rect.top;
+        const gridWidth = rect.width / 10;
+        const gridHeight = rect.height /10;
+        const indexX = Math.floor(x / gridWidth);
+        const indexY = Math.floor(y / gridHeight);
+        playerTurn(indexX,indexY);
+        setTimeout(enemyTurn, 4000);
+    }
+    
+});
 function beginGame(){
     gameActive = true;
-    console.table(playerArray);
-    console.table(hiddenArray);
-    while(gameActive === true){
-        playerTurn();
-        enemyTurn();
-        console.table(playerArray);
-        console.table(hiddenArray);
+    isplayerTurn = true;
+    setBoardButton.style.display = "none";
+    startButton.style.display = "none";
+    endButton.style.display = "inline";
+    drawGame();
+}
+function drawGame(){
+    const playerCtx = playerCanvas.getContext('2d');
+    const hiddenCtx = hiddenCanvas.getContext('2d');
+    if(isplayerTurn === true && gameActive == true){
+        hiddenCanvas.classList.add('highlight');
+    }
+    else{
+        hiddenCanvas.classList.remove('highlight');
+    }
+    drawScreen(playerCanvas,playerCtx, playerArray);
+    drawScreen(hiddenCanvas,hiddenCtx, hiddenArray);
+
+    function drawScreen(canvas,ctx,array ){
+        const width = canvas.width / 10;
+        const height = canvas.height / 10;
+        let colI = 0;
+        array.forEach(row =>{
+            let rowI = 0;
+            row.forEach(item=>{
+                ctx.beginPath();
+                ctx.rect(0+ rowI, 0 + colI, width, height);
+                ctx.strokeStyle = "white";
+                ctx.stroke();
+                switch(item){
+                    case ' ':
+                        ctx.fillStyle = "navy";
+                        break;
+                    case 'X':
+                        ctx.fillStyle = "red";
+                        break;
+                    case 'O':
+                        ctx.fillStyle ="white";
+                        break;
+                    case 'R':
+                        ctx.fillStyle = 'red';
+                        break;
+
+                    default:
+                        ctx.fillStyle = "gray";
+                        break;
+
+                }
+                ctx.fill();
+                ctx.font = '16px Arial';
+                ctx.fillStyle = 'whitesmoke';   // Set the fill color for the text
+                ctx.textAlign = 'center'; // Set the text alignment
+                ctx.textBaseLine ="top";
+
+                // Draw filled text
+                ctx.fillText(item,  rowI + 14  , colI + 14);
+                ctx.closePath();   
+                rowI = rowI + width
+            })
+            colI = colI + height;
+        })
+
     }
 }
-function playerTurn(){    
-        const input = window.prompt("Coordinates(ex: x,y) - ");
-        const inputY = input.charAt(0);
-        const inputX = input.charAt(2);
-        if(enemyArray[inputX][inputY]!= ' '){
-            window.alert("Hit at " + inputY + ", " + inputX);
-            const hitLetter = enemyArray[inputX][inputY];
-            enemyArray[inputX][inputY] = 'R';
-            hiddenArray[inputX][inputY] = 'X';
+function playerTurn(inputX, inputY){    
+        if(enemyArray[inputY][inputX]!= ' '){
+            const hitLetter = enemyArray[inputY][inputX];
+            enemyArray[inputY][inputX] = 'R';
+            hiddenArray[inputY][inputX] = 'X';
             if(didShipSink(enemyArray, hitLetter)){
                 Ships.forEach(ship =>{
                     if(ship.letter === hitLetter){
@@ -54,39 +126,41 @@ function playerTurn(){
             
         }
         else{
-            window.alert("Miss at " + inputY + ", " + inputX);
-            hiddenArray[inputX][inputY] = 'O';
+            hiddenArray[inputY][inputX] = 'O';
         }
+        isplayerTurn = false;
+        drawGame();
 }
 function enemyTurn(){
-    window.alert("ENEMY TURN... Ready?");
     let enemyX = 0;
     let enemyY = 0;
-    let isValid = false;
-    while (!isValid) {
+    const attackList = [];
         if (!targetMode) {
-            enemyX = getRandomInt(0, 9);
-            enemyY = getRandomInt(0, 9);
+            for(let i = 0; i<enemyHiddenArray.length; i++){
+                for(let j = 0; j<enemyHiddenArray.length; j++){
+                    if(enemyHiddenArray[i][j] === ' '){
+                        attackList.push([i,j]);
+                    }
+                }
+            }
+            const randomTarget = attackList[getRandomInt(0, attackList.length-1)];
+            enemyX = randomTarget[0];
+            enemyY = randomTarget[1];
         } else {  // Target mode is active
             const attackCoords = attackTarget(target[0], target[1]);
             if (attackCoords === null) {
                 // If no valid coordinates found, reset target mode and search area, try random attack
                 targetMode = false;
                 searchArea = 2;  // Reset search area or adjust as needed
-                continue;  // Continue while loop to fetch new random coordinates
             }
             enemyX = attackCoords[0];
             enemyY = attackCoords[1];
         }
-        if (enemyHiddenArray[enemyX][enemyY] === ' ') {
-            isValid = true;
-        }
-    }
+    
     processEnemyTurn(enemyX, enemyY);  // Processing the turn based on valid coordinates
 }
 function processEnemyTurn(enemyX, enemyY) {
     if (playerArray[enemyX][enemyY] !== ' ') {
-        window.alert("Hit at " + enemyX + ", " + enemyY);
         const hitLetter = playerArray[enemyX][enemyY];
         targetMode = true;
         target = [enemyX, enemyY];
@@ -105,20 +179,25 @@ function processEnemyTurn(enemyX, enemyY) {
             }
         }
     } else {
-        window.alert("Miss at " + enemyY + ", " + enemyX);
         enemyHiddenArray[enemyX][enemyY] = 'O';
         playerArray[enemyX][enemyY] = 'O';
     }
+    isplayerTurn = true;
+    drawGame();
 }
 function endGame(num){
     if(num === 1){
         window.alert("You Win: Close Game")
     }
+    else if(num === 112){
+        window.alert("Game Exitied")
+    }
     else{
         window.alert("You Lose: Close Game")
     }
-    console.log("Game Over");
     gameActive = false;
+    drawGame();
+    window.close();
 }
 function didPlayerWin(player){
     for (let i = 0; i < player.length; i++) {
@@ -145,7 +224,7 @@ function didShipSink(player, letter) {
 function playerSetBoard(){
     playerArray = createEmptyArray(10, 10);
     playerArray = randomMapOutShips(playerArray);
-    console.table(playerArray);
+    drawGame();
 }
 function randomMapOutShips(array){
     Ships.forEach(ship =>{
@@ -221,11 +300,9 @@ function attackTarget(x, y) {
     // Determine if there are hits directly horizontal or vertical to the target
     if ((x > 0 && enemyHiddenArray[x - 1][y] === 'R') || (x < 9 && enemyHiddenArray[x + 1][y] === 'R')) {
         horizontalHits = true;
-        console.log("horizontalHits on");
     }
     if ((y > 0 && enemyHiddenArray[x][y - 1] === 'R') || (y < 9 && enemyHiddenArray[x][y + 1] === 'R')) {
         verticalHits = true;
-        console.log("verticalHits on");
     }
 
     // Add coordinates based on detected hits

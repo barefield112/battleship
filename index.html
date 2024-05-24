@@ -8,8 +8,13 @@
 </head>
 <body>
     <div class="game-wrapper">
-        <button onclick= playerSetBoard() >Set Board</button>
-        <button onclick=beginGame()>Start</button>
+        <canvas id ="hidden-screen"></canvas>
+        <canvas id="player-screen"></canvas>
+        <div>
+            <button id = "setBoard" onclick= playerSetBoard() >Set Board</button>
+            <button id = "startGame" onclick=beginGame()>Start</button>
+            ,<button id="endGame" onclick=endGame(112)>Exit Game</button>
+        </div>
     </div>
 
     <script src="script.js"></script>
