@@ -3,6 +3,8 @@ const hiddenCanvas = document.getElementById('hidden-screen');
 const setBoardButton = document.getElementById('setBoard');
 const startButton = document.getElementById('startGame');
 const endButton = document.getElementById('endGame');
+const outputTurn = document.getElementById('output-turn');
+const outputText = document.getElementById('output-text');
 function Ship(name, letter, length){
     this.name = name;
     this.letter = letter;
@@ -52,9 +54,15 @@ function drawGame(){
     const hiddenCtx = hiddenCanvas.getContext('2d');
     if(isplayerTurn === true && gameActive == true){
         hiddenCanvas.classList.add('highlight');
+        outputTurn.textContent = "Waiting for Player...";
+        outputTurn.style.color = "yellow";
     }
     else{
         hiddenCanvas.classList.remove('highlight');
+        if(gameActive == true ){
+            outputTurn.textContent = "Waiting for Enemy...";
+            outputTurn.style.color = "gray";
+        }
     }
     drawScreen(playerCanvas,playerCtx, playerArray);
     drawScreen(hiddenCanvas,hiddenCtx, hiddenArray);
@@ -97,6 +105,7 @@ function drawGame(){
 
                 // Draw filled text
                 ctx.fillText(item,  rowI + 14  , colI + 14);
+                
                 ctx.closePath();   
                 rowI = rowI + width
             })
@@ -110,10 +119,13 @@ function playerTurn(inputX, inputY){
             const hitLetter = enemyArray[inputY][inputX];
             enemyArray[inputY][inputX] = 'R';
             hiddenArray[inputY][inputX] = 'X';
+            outputText.style.color = "red";
+            outputText.textContent = `Player: Hit at ${inputX}, ${inputY}`;
             if(didShipSink(enemyArray, hitLetter)){
                 Ships.forEach(ship =>{
                     if(ship.letter === hitLetter){
-                        window.alert("You Sunk Their " + ship.name);
+                        outputText.textContent = "You Sunk Their " + ship.name;
+                        //window.alert("You Sunk Their " + ship.name);
                     }
                 })
                 if(didPlayerWin(enemyArray)){
@@ -123,6 +135,8 @@ function playerTurn(inputX, inputY){
             
         }
         else{
+            outputText.style.color = "white";
+            outputText.textContent = `Player: Miss at ${inputX}, ${inputY}`;
             hiddenArray[inputY][inputX] = 'O';
         }
         isplayerTurn = false;
@@ -172,10 +186,12 @@ function processEnemyTurn(enemyX, enemyY) {
         target = [enemyX, enemyY];
         enemyHiddenArray[enemyX][enemyY] = 'X';
         playerArray[enemyX][enemyY] = 'R';
+        outputText.style.color = "red";
+        outputText.textContent = `Enemy: Hit at ${enemyY}, ${enemyX}`;
         if (didShipSink(playerArray, hitLetter)) {
             Ships.forEach(ship => {
                 if (ship.letter === hitLetter) {
-                    window.alert("They Sunk Your " + ship.name);
+                    outputText.textContent = "They Sunk Your " + ship.name;
                     targetMode = false;
                     searchArea = 1;
                 }
@@ -185,6 +201,8 @@ function processEnemyTurn(enemyX, enemyY) {
             }
         }
     } else {
+        outputText.style.color = "white";
+        outputText.textContent = `Enemy: Miss at ${enemyY}, ${enemyX}`;
         enemyHiddenArray[enemyX][enemyY] = 'O';
         playerArray[enemyX][enemyY] = 'O';
     }
@@ -360,7 +378,6 @@ function attackTarget(x, y) {
     }
 }
 */
-
 function oppenentTargetAI(x, y){
     let emptySpaces = [];
     let hitSpaces = [];

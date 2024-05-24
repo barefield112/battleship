@@ -9,11 +9,17 @@
 <body>
     <div class="game-wrapper">
         <canvas id ="hidden-screen"></canvas>
-        <canvas id="player-screen"></canvas>
-        <div>
-            <button id = "setBoard" onclick= playerSetBoard() >Set Board</button>
-            <button id = "startGame" onclick=beginGame()>Start</button>
-            ,<button id="endGame" onclick=endGame(112)>Exit Game</button>
+        <div class="ui-board">
+            <canvas id="player-screen"></canvas>
+            <div id="output-block">
+                <p id="output-turn">Ready to Start?</p>
+                <p id="output-text">Press Setup Board till desired set up then press Start</p>
+            </div>
+            <div class="button-wrapper">
+                <button id = "setBoard" onclick= playerSetBoard() >Set Board</button>
+                <button id = "startGame" onclick=beginGame()>Start</button>
+                <button id="endGame" onclick=endGame(112)>Exit Game</button>
+            </div>
         </div>
     </div>
 
